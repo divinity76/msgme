@@ -45,3 +45,5 @@ email=pmmepubfacebook@gmail.com
 password=ThePublicPassword1234567
 recipientID=100000605585019
 ```
+just change the recipientID to your own facebook ID. (if you dont know your FB ID, check http://findmyfbid.com/ or google it, or you can find it by looking for "uid" in facebook's html for viewing your own profile..) -
+however, since facebook will not notice you about messages from strangers, but hide them in a section called "Message Requests", for the best effect, send a friend request to https://www.facebook.com/pmedpub.noticers.5 first. 
