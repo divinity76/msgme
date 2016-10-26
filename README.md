@@ -32,7 +32,7 @@ sudo ln -s /usr/bin/msgme_standalone.php /usr/bin/msgme
 ```
 # example configuration
 for general configurations info, try `msgme --help` ,
-and for configuration for a specific relay, `msgme --help relay RelayName`  (like `msgme --help relay Facebook`)
+and for configuration for a specific relay, `msgme --help relay RelayName`  (like `msgme --help relay Facebook`).
 here is a full working ~/.msgme.ini : 
 ```ini
 [global]
