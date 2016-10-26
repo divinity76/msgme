@@ -1,7 +1,7 @@
 # msgme
 cli tool to send a message. useful when you want to be notified of when a slow command has finished.
 
-after configuring your .msgme.ini , and installing it in some place like /usr/bin/msgme , it's as easy as
+after configuring your ~/.msgme.ini , and installing it in some place like /usr/bin/msgme , it's as easy as
 
 
 `msgme ping`
@@ -29,4 +29,19 @@ and indeed, my phone, synced to facebook messenger, pings me with "you got a new
 sudo wget -O /usr/bin/msgme_standalone.php https://github.com/divinity76/msgme/releases/download/v1-beta2/msgme_standalone.php
 sudo chmod +x /usr/bin/msgme_standalone.php
 sudo ln -s /usr/bin/msgme_standalone.php /usr/bin/msgme
+```
+# example configuration
+for general configurations info, try `msgme --help` ,
+and for configuration for a specific relay, `msgme --help relay RelayName`  (like `msgme --help relay Facebook`)
+here is a full working ~/.msgme.ini : 
+```ini
+[global]
+relay=Facebook
+message_prepend=hanshenrik@DevX: 
+message_append=.
+allowEmptyMessage=1
+[Facebook]
+email=pmmepubfacebook@gmail.com
+password=ThePublicPassword1234567
+recipientID=100000605585019
 ```
