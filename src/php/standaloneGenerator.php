@@ -11,7 +11,9 @@ $files = array_merge ( $files, glob ( __DIR__ . '/relays/*.relay.php' ) );
 $fullsource = buildSourceFromTokens ( removeIncludesFromTokens ( mytokens ( 'msgme.php', false ) ) );
 $evalPositionString = '// StandAloneGeneratorEvalPoint431763246';
 $evalPosition = strpos ( $fullsource, $evalPositionString );
-
+$fullsourcePart1 = substr ( $fullsource, 0, $evalPosition );
+$fullsourcePart2 = substr ( $fullsource, $evalPosition );
+$fullsource = $fullsourcePart1 .= "\ndefine('IS_STANDALONE',true,true);\n" . $fullsourcePart2;
 if ($evalPosition === false) {
 	throw new Exception ( 'cannot find ' . $evalPositionString );
 }
