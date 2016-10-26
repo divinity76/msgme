@@ -24,7 +24,6 @@ function getUserOption(string $section, string $option, $default = false) {
 			die ();
 		}
 		$options = parse_ini_string ( $options, true, INI_SCANNER_TYPED );
-
 	}
 	if (! array_key_exists ( $section, $options ) || ! is_array ( $options [$section] ) || ! array_key_exists ( $option, $options [$section] )) {
 		return $default;
@@ -42,7 +41,7 @@ foreach ( $relays as $relay ) {
 	$relaysByName [$relay::getRelayName ()] = $relay;
 }
 unset ( $relay );
-if (in_array ( '--help', $argv, true )) {
+if (($argv [1] ?? '') === '--help') {
 	printHelp ();
 	die ();
 }
@@ -77,12 +76,12 @@ if (! $relay->sendMessage ( $message )) {
 function printHelp() {
 	global $relays, $relaysByName, $argc, $argv;
 	$availableRelays = json_encode ( array_keys ( $relaysByName ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . PHP_EOL;
-	if ($argc >= 3) {
-		if (! array_key_exists ( $argv [2], $relaysByName )) {
-			fwrite ( STDERR, 'Error: unrecognized relay ' . var_export ( $argv [2], true ) . '. valid relays:' . PHP_EOL . $availableRelays . '. for help, try ' . $argv [0] . ' --help' . PHP_EOL );
+	if ($argc >= 4) {
+		if (! array_key_exists ( $argv [3], $relaysByName )) {
+			fwrite ( STDERR, 'Error: unrecognized relay ' . var_export ( $argv [3], true ) . '. valid relays:' . PHP_EOL . $availableRelays . '. for help, try ' . $argv [0] . ' --help' . PHP_EOL );
 			die ();
 		}
-		echo $relaysByName [$argv [2]]::help ();
+		echo $relaysByName [$argv [3]]::help ();
 		die ();
 	}
 	$localName = exec ( 'whoami' ) . '@' . php_uname ( 'n' );
@@ -95,7 +94,7 @@ available relays: $availableRelays
 
 to see relay-specific configuration options, try:
 
-$argv[0] --help relayname
+$argv[0] --help relay (relayname)
 
 an example ~/.msgme.ini looks like:
 
@@ -113,16 +112,15 @@ recipientID=100000605585019
 MSG;
 }
 function loadRelays(): array {
-	foreach ( glob ( __DIR__ . '/relays/*.relay.php' ) as $relay ) {
-		require_once ($relay);
+	if (! defined ( 'IS_STANDALONE' )) {
+		foreach ( glob ( __DIR__ . '/relays/*.relay.php' ) as $relay ) {
+			require_once ($relay);
+		}
 	}
 	$ret = [ ];
 	$classes = get_declared_classes ();
 	foreach ( $classes as $class ) {
 		if (in_array ( 'MsgMe\MessageRelay', class_implements ( $class, false ), true )) {
-			if ($class::getRelayName () === 'Skeleton') {
-				continue; // hardcoded to hide this.
-			}
 			$ret [] = $class;
 		}
 	}
