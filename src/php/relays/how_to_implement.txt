@@ -1,0 +1,98 @@
+this document describes how to implement a relay.
+
+first, create a file in the relays folder, the filename MUST end with .relay.php
+
+it SHOULD create a new namespace in \MsgMe\Relays
+
+then create a class which SHOULD have Relay in the name, and MUST implement \MsgMe\MessageRelay
+
+the class MUST contain a public static function called getRelayName , 
+which returns a string containing the relay name as you wish it displayed to the end-user. it SHOULD NOT have spaces in the name. 
+
+the class MUST contain a public static function called help , 
+which returns a string containing the help text given to the user when doing msgme --help relay (your relay name as returned by class::getRelayName()),
+it SHOULD explain all supported configuration options for your relay. (username? password? access token? url? etc)
+
+the class MUST contain a public function called getRecipient , 
+which returns a string, which SHOULD containing the name of the recipient for SendMessage.
+
+the class MUST contain a public function called sendMessage, taking a string argument,
+which SHOULD return bool(true) to indicate success, and SHOULD throw an exception to indicate failure.
+
+
+if your class needs to do some initialization (like creating a curl handle, logging in, getting a session id, 
+verifying that required configuration options are given and are valid,  etc),
+it is RECOMMENDED to make a funcion called __construct , to do those things, as it will be called when creating a new instance of your class.
+
+if a required configuration option is missing, you SHOULD throw an exception.
+
+if your class needs to do some cleanup when finished (like logging out, closing curl handles, etc),
+it is RECOMMENDED to make a function called __destruct , to do these things, as it will be called when deleting an instance of your class. 
+
+
+that's all, i guess.
+
+below is an example (finctional) relay:
+
+
+<?php
+declare(strict_types=1);
+namespace MsgMe\Relays\Example;
+class ExampleRelay implements \MsgMe\MessageRelay {
+	public static function getRelayName(): string {
+		return 'freenode IRC relay';
+	}
+
+	public function getRecipient(): string {
+		return 'freenode username ' . $this->recipientUserName;
+	}
+
+	protected $APIKey;
+	protected $recipientUserName;
+	protected $socket;
+	function __construct() {
+		$APIKey = \MsgMe\getUserOption ( 'Freenode', 'APIKey', NULL );
+		if ($APIKey === null) {
+			throw new \Exception ( 'missing required [Freenode] APIKey= ! ' );
+		}
+		$this->APIKey = $APIKey;
+		$recipientUserName = \MsgMe\getUserOption ( 'Freenode', 'recipientUserName', false );
+		if ($recipientUserName === false) {
+			throw new \Exception ( 'missing required [Freenode] $recipientUserName= !' );
+		}
+		$this->recipientUserName = $recipientUserName;
+		$this->socket = fsockopen ( 'irc.freenode.net', 6667 );
+		//lets say this is all that is needed to log in. 
+		socket_write($this->socket,$this->APIKey);
+		// all ready to sendMessage!();
+	}
+	function __destruct() {
+		socket_write ( $this->socket, '/DISCONNECT' );
+		socket_close ( $this->socket );
+	}
+	public function sendMessage(string $message): bool {
+		$str = '/msg ' . $this->recipientUserName . ' ' . $message;
+		if (strlen ( $str ) === ($sent = fwrite ( $this->socket, $str ))) {
+			// message sent!
+			return true;
+		} else {
+			throw new \RuntimeException ( 'tried to send ' . strlen ( $str ) . ' bytes, but could only send ' . \MsgMe\tools\return_var_dump ( $sent ) . ' bytes!' );
+		}
+	}
+	public static function help(): string {
+		$need = 'php-curl ' . (function_exists ( 'curl_init' ) ? '(installed)' : '(Warning: not installed)') . ' ';
+		$str = <<<HELP
+For Freenode Relay to work, you need $need.
+ini section:
+[Freenode]
+APIKey=your API key.
+recipientUserName=Luffy
+
+Ipsub Dolores and all that.
+
+HELP;
+		return $str;
+	}
+
+}
+
