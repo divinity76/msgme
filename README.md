@@ -27,7 +27,7 @@ and indeed, my phone, synced to facebook messenger, pings me with "you got a new
 # example installation
 ```bash
 sudo wget -O /usr/bin/msgme_standalone.php https://github.com/divinity76/msgme/releases/download/v1-beta2/msgme_standalone.php
-sudo chmod +x /usr/bin/msgme_standalone.php
+sudo chmod 0555 /usr/bin/msgme_standalone.php
 sudo ln -s /usr/bin/msgme_standalone.php /usr/bin/msgme
 ```
 # example configuration
