@@ -9,7 +9,7 @@ class FacebookRelay implements \MsgMe\MessageRelay {
 		return 'Facebook';
 	}
 	public static function help(): string {
-		$need = 'php-curl ' . (function_exists ( 'curl_init' ) ? ' (installed)' : '(Warning: Not installed)') . ' php-xml ' . (class_exists ( 'DOMDocument', false ) ? '(installed)' : '(Warning: not installed)') . ' ';
+		$need = 'php-curl ' . (\function_exists ( 'curl_init' ) ? ' (installed)' : '(Warning: Not installed)') . ' php-xml ' . (\class_exists ( 'DOMDocument', false ) ? '(installed)' : '(Warning: not installed)') . ' ';
 		$str = <<<HELP
 
 for Facebook relay to work, you need $need
@@ -31,7 +31,7 @@ HELP;
 	public function sendMessage(string $message): bool {
 		$hc = &$this->hc;
 		$hc->setopt ( CURLOPT_HTTPGET, true );
-		$hc->exec ( 'https://m.facebook.com/messages/compose/?ids=' . rawurlencode ( ( string ) $this->recipientID ) );
+		$hc->exec ( 'https://m.facebook.com/messages/compose/?ids=' . \rawurlencode ( ( string ) $this->recipientID ) );
 		$domd = @\DOMDocument::loadHTML ( $hc->getResponseBody () );
 		$form = \MsgMe\tools\getDOMDocumentFormInputs ( $domd, true ) ['composer_form'];
 		$postfields = (function () use (&$form): array {
@@ -45,7 +45,7 @@ HELP;
 		assert ( array_key_exists ( 'name', $postfields ) );
 		assert ( array_key_exists ( 'body', $postfields ) );
 		$postfields ['body'] = $message;
-		$urlinfo = parse_url ( $hc->getinfo ( CURLINFO_EFFECTIVE_URL ) );
+		$urlinfo = \parse_url ( $hc->getinfo ( CURLINFO_EFFECTIVE_URL ) );
 		$posturl = $urlinfo ['scheme'] . '://' . $urlinfo ['host'] . $domd->getElementById ( "composer_form" )->getAttribute ( "action" );
 		unset ( $urlinfo );
 		// hhb_var_dump ( $postfields, $posturl );
@@ -70,15 +70,15 @@ HELP;
 	function __construct() {
 		$this->recipientID = \MsgMe\getUserOption ( 'Facebook', 'recipientID', NULL );
 		if (NULL === $this->recipientID) {
-			throw new Exception ( 'Error: cannot find [Facebook] recipientID option!' );
+			throw new \Exception ( 'Error: cannot find [Facebook] recipientID option!' );
 		}
 		$this->email = \MsgMe\getUserOption ( 'Facebook', 'email', NULL );
 		if (NULL === $this->email) {
-			throw new Exception ( 'Error: cannot find [Facebook] email option!' );
+			throw new \Exception ( 'Error: cannot find [Facebook] email option!' );
 		}
 		$this->password = \MsgMe\getUserOption ( 'Facebook', 'password', NULL );
 		if (NULL === $this->password) {
-			throw new Exception ( 'Error: cannot find [Facebook] password option!' );
+			throw new \Exception ( 'Error: cannot find [Facebook] password option!' );
 		}
 		$this->hc = new \hhb_curl ();
 		$hc = &$this->hc;
@@ -93,13 +93,13 @@ HELP;
 		$domd = @\DOMDocument::loadHTML ( $hc->getResponseBody () );
 
 		$namespaces = array ();
-		foreach ( get_declared_classes () as $name ) {
-			if (preg_match_all ( "@[^\\\]+(?=\\\)@iU", $name, $matches )) {
+		foreach ( \get_declared_classes () as $name ) {
+			if (\preg_match_all ( "@[^\\\]+(?=\\\)@iU", $name, $matches )) {
 				$matches = $matches [0];
 				$parent = &$namespaces;
-				while ( count ( $matches ) ) {
-					$match = array_shift ( $matches );
-					if (! isset ( $parent [$match] ) && count ( $matches ))
+				while ( \count ( $matches ) ) {
+					$match = \array_shift ( $matches );
+					if (! isset ( $parent [$match] ) && \count ( $matches ))
 						$parent [$match] = array ();
 					$parent = &$parent [$match];
 
@@ -142,7 +142,7 @@ HELP;
 				$url = $urlinfo ['scheme'] . '://' . $urlinfo ['host'] . $a->getAttribute ( "href" );
 				return $url;
 			}
-			throw new RuntimeException ( 'failed to login to facebook! apparently... cannot find the logout url!' );
+			throw new \RuntimeException ( 'failed to login to facebook! apparently... cannot find the logout url!' );
 		};
 		$this->logoutUrl = ($logoutUrl = $logoutUrl ()); // IIFE syntax makes eclipse unstable
 		;
