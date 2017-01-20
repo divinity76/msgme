@@ -42,7 +42,7 @@ HELP;
 			return $ret;
 		});
 		$postfields = $postfields ();
-		assert ( array_key_exists ( 'name', $postfields ) );
+		//seems facebook removed this field: assert ( array_key_exists ( 'name', $postfields ) );
 		assert ( array_key_exists ( 'body', $postfields ) );
 		$postfields ['body'] = $message;
 		$urlinfo = \parse_url ( $hc->getinfo ( CURLINFO_EFFECTIVE_URL ) );
