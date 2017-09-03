@@ -42,7 +42,7 @@ HELP;
 			return $ret;
 		});
 		$postfields = $postfields ();
-		//seems facebook removed this field: assert ( array_key_exists ( 'name', $postfields ) );
+		// seems facebook removed this field: assert ( array_key_exists ( 'name', $postfields ) );
 		assert ( array_key_exists ( 'body', $postfields ) );
 		$postfields ['body'] = $message;
 		$urlinfo = \parse_url ( $hc->getinfo ( CURLINFO_EFFECTIVE_URL ) );
@@ -51,12 +51,12 @@ HELP;
 		// hhb_var_dump ( $postfields, $posturl );
 		$hc->setopt_array ( array (
 				CURLOPT_POST => true,
-				CURLOPT_POSTFIELDS => http_build_query ( $postfields )
+				CURLOPT_POSTFIELDS => http_build_query ( $postfields ) 
 		) );
 		$hc->exec ( $posturl );
 		// TODO: parse the response to make sure it isn't an error?
 		// hhb_var_dump ( $postfields, $posturl, $hc->getStdErr (), $hc->getResponseBody () );
-
+		
 		return true;
 	}
 	public function getRecipient(): string {
@@ -86,12 +86,13 @@ HELP;
 		$hc->setopt_array ( array (
 				CURLOPT_USERAGENT => 'Mozilla/5.0 (BlackBerry; U; BlackBerry 9300; en) AppleWebKit/534.8+ (KHTML, like Gecko) Version/6.0.0.570 Mobile Safari/534.8+',
 				CURLOPT_HTTPHEADER => array (
-						'accept-language:en-US,en;q=0.8'
-				)
+						'accept-language:en-US,en;q=0.8' 
+				) 
 		) );
 		$hc->exec ( 'https://m.facebook.com/' );
+		// \hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
 		$domd = @\DOMDocument::loadHTML ( $hc->getResponseBody () );
-
+		
 		$namespaces = array ();
 		foreach ( \get_declared_classes () as $name ) {
 			if (\preg_match_all ( "@[^\\\]+(?=\\\)@iU", $name, $matches )) {
@@ -102,14 +103,13 @@ HELP;
 					if (! isset ( $parent [$match] ) && \count ( $matches ))
 						$parent [$match] = array ();
 					$parent = &$parent [$match];
-
 				}
 			}
 		}
-
+		
 		// print_r ( $namespaces );
 		// die ( "DIEDS" );
-
+		
 		$form = (\MsgMe\tools\getDOMDocumentFormInputs ( $domd, true )) ['login_form'];
 		$url = $domd->getElementsByTagName ( "form" )->item ( 0 )->getAttribute ( "action" );
 		$postfields = (function () use (&$form): array {
@@ -128,11 +128,24 @@ HELP;
 				CURLOPT_POST => true,
 				CURLOPT_POSTFIELDS => http_build_query ( $postfields ),
 				CURLOPT_HTTPHEADER => array (
-						'accept-language:en-US,en;q=0.8'
-				)
+						'accept-language:en-US,en;q=0.8' 
+				) 
 		) );
+		// \hhb_var_dump ($postfields ) & die ();
 		$hc->exec ( $url );
+		// \hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
+		
 		$domd = @\DOMDocument::loadHTML ( $hc->getResponseBody () );
+		$xp = new \DOMXPath ( $domd );
+		$InstallFacebookAppRequest = $xp->query ( "//a[contains(@href,'/login/save-device/cancel/')]" );
+		if ($InstallFacebookAppRequest->length > 0) {
+			// not all accounts get this, but some do, not sure why, anyway, if this exist, fb is asking "ey wanna install the fb app instead of using the website?"
+			// and won't let you proceed further until you say yes or no. so we say no.
+			$url = 'https://m.facebook.com' . $InstallFacebookAppRequest->item ( 0 )->getAttribute ( "href" );
+			$hc->exec ( $url );
+			$domd = @\DOMDocument::loadHTML ( $hc->getResponseBody () );
+		}
+		unset ( $InstallFacebookAppRequest, $url, $xp );
 		$logoutUrl = function () use (&$domd, &$hc): string {
 			foreach ( $domd->getElementsByTagName ( "a" ) as $a ) {
 				if (strpos ( $a->textContent, 'Logout' ) !== 0) {
@@ -152,5 +165,4 @@ HELP;
 		$this->hc->exec ( $this->logoutUrl );
 		unset ( $this->hc ); // im trying to force it to hhb_curl::__destruct, this would be the appropriate time.
 	}
-
 }
