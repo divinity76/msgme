@@ -46,6 +46,9 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
 		foreach ( $domd->getElementsByTagName ( "textarea" ) as $textarea ) {
 			$ret [] = $textarea;
 		}
+		foreach ( $domd->getElementsByTagName ( "button" ) as $button ) {
+			$ret [] = $button;
+		}
 		return $ret;
 	};
 	$merged = $merged ();
