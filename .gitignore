@@ -1,4 +1,9 @@
 /cache/
 /config/development/
 /src/php/msgme_standalone.php
+# <eclipse>
 /.project
+/.buildpath
+/.settings
+#</eclipse>
+
