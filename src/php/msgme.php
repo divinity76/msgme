@@ -69,7 +69,7 @@ $relay = new $relaysByName [getUserOption ( 'global', 'relay' )] ();
 echo "sending message ", var_export ( $message, true ), ' to ' . $relay->getRecipient (), PHP_EOL;
 if (! $relay->sendMessage ( $message )) {
 	// i think an exception is better than returning false but
-	throw new Exception ( 'relay returned false! failed to send message!' );
+	throw new \Exception ( 'relay returned false! failed to send message!' );
 } else {
 	echo "sent.", PHP_EOL;
 }
