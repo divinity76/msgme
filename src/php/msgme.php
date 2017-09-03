@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace MsgMe;
 
-require_once ('hhb_.inc.php');
+require_once (__DIR__ . DIRECTORY_SEPARATOR . 'hhb_.inc.php');
 require_once ('MsgMeTools.php');
 interface MessageRelay {
 	public static function getRelayName(): string;
