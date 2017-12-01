@@ -24,8 +24,11 @@ function return_var_dump(/*...*/){
 	call_user_func_array ( 'var_dump', $args );
 	return ob_get_clean ();
 }
-function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches = false): array {
+function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches = false, bool $getElements = true): array {
 	// :DOMNodeList?
+	if (! $getOnlyFirstMatches && ! $getElements) {
+		throw new \InvalidArgumentException ( '!$getElements is currently only implemented for $getOnlyFirstMatches (cus im lazy and nobody has written the code yet)' );
+	}
 	$forms = $domd->getElementsByTagName ( 'form' );
 	$parsedForms = array ();
 	$isDescendantOf = function (\DOMNode $decendant, \DOMNode $ele): bool {
@@ -55,7 +58,6 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
 	foreach ( $forms as $form ) {
 		$inputs = function () use (&$domd, &$form, &$isDescendantOf, &$merged): array {
 			$ret = array ();
-
 			foreach ( $merged as $input ) {
 				// hhb_var_dump ( $input->getAttribute ( "name" ), $input->getAttribute ( "id" ) );
 				if ($input->hasAttribute ( "disabled" )) {
@@ -73,7 +75,7 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
 				}
 				if (! array_key_exists ( $name, $ret )) {
 					$ret [$name] = array (
-							$input
+							$input 
 					);
 				} else {
 					$ret [$name] [] = $input;
@@ -92,12 +94,12 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
 		}
 		if (! $hasName) {
 			$parsedForms [] = array (
-					$inputs
+					$inputs 
 			);
 		} else {
 			if (! array_key_exists ( $name, $parsedForms )) {
 				$parsedForms [$name] = array (
-						$inputs
+						$inputs 
 				);
 			} else {
 				$parsedForms [$name] [] = $tmp;
@@ -116,5 +118,17 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
 			}
 		}
 	}
-	return $parsedForms;
+	if ($getElements) {
+		return $parsedForms;
+	} else {
+		$ret = array ();
+		foreach ( $parsedForms as $formName => $arr ) {
+			$ret [$formName] = array ();
+			foreach ( $arr as $ele ) {
+				$ret [$formName] [$ele->getAttribute ( "name" )] = $ele->getAttribute ( "value" );
+			}
+		}
+		return $ret;
+	}
+	throw new \Exception ( 'unreachable code' );
 }
