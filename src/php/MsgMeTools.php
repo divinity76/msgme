@@ -120,15 +120,13 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
 	}
 	if ($getElements) {
 		return $parsedForms;
-	} else {
-		$ret = array ();
-		foreach ( $parsedForms as $formName => $arr ) {
-			$ret [$formName] = array ();
-			foreach ( $arr as $ele ) {
-				$ret [$formName] [$ele->getAttribute ( "name" )] = $ele->getAttribute ( "value" );
-			}
-		}
-		return $ret;
 	}
-	throw new \Exception ( 'unreachable code' );
+	$ret = array ();
+	foreach ( $parsedForms as $formName => $arr ) {
+		$ret [$formName] = array ();
+		foreach ( $arr as $ele ) {
+			$ret [$formName] [$ele->getAttribute ( "name" )] = $ele->getAttribute ( "value" );
+		}
+	}
+	return $ret;
 }
