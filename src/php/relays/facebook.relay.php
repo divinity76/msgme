@@ -144,21 +144,22 @@ HELP;
 			$url = 'https://m.facebook.com' . $InstallFacebookAppRequest->item ( 0 )->getAttribute ( "href" );
 			$hc->exec ( $url );
 			$domd = @\DOMDocument::loadHTML ( $hc->getResponseBody () );
+			$xp = new \DOMXPath ( $domd );
 		}
-		unset ( $InstallFacebookAppRequest, $url, $xp );
-		$logoutUrl = function () use (&$domd, &$hc): string {
-			foreach ( $domd->getElementsByTagName ( "a" ) as $a ) {
-				if (strpos ( $a->textContent, 'Logout' ) !== 0) {
-					continue;
-				}
-				$urlinfo = parse_url ( $hc->getinfo ( CURLINFO_EFFECTIVE_URL ) );
-				$url = $urlinfo ['scheme'] . '://' . $urlinfo ['host'] . $a->getAttribute ( "href" );
-				return $url;
-			}
-			throw new \RuntimeException ( 'failed to login to facebook! apparently... cannot find the logout url!' );
-		};
-		$this->logoutUrl = ($logoutUrl = $logoutUrl ()); // IIFE syntax makes eclipse unstable
-		;
+		unset ( $InstallFacebookAppRequest, $url );
+		$urlinfo = parse_url ( $hc->getinfo ( CURLINFO_EFFECTIVE_URL ) );
+		$a = $xp->query ( '//a[contains(@href,"/logout.php")]' );
+		if ($a->length < 1) {
+			$debuginfo = $hc->getStdErr () . $hc->getStdOut ();
+			$tmp = tmpfile ();
+			fwrite ( $tmp, $debuginfo );
+			$debuginfourl = shell_exec ( "cat " . escapeshellarg ( stream_get_meta_data ( $tmp ) ['uri'] . " | pastebinit" ) );
+			fclose ( $tmp );
+			throw new \RuntimeException ( 'failed to login to facebook! apparently... cannot find the logout url!  debuginfo url: ' . $debuginfourl );
+		}
+		$a = $a->item ( 0 );
+		$url = $urlinfo ['scheme'] . '://' . $urlinfo ['host'] . $a->getAttribute ( "href" );
+		$this->logoutUrl = $url;
 		// all initialized, ready to sendMessage();
 	}
 	function __destruct() {
