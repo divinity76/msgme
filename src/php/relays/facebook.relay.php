@@ -153,7 +153,7 @@ HELP;
 			$debuginfo = $hc->getStdErr () . $hc->getStdOut ();
 			$tmp = tmpfile ();
 			fwrite ( $tmp, $debuginfo );
-			$debuginfourl = shell_exec ( "cat " . escapeshellarg ( stream_get_meta_data ( $tmp ) ['uri'] . " | pastebinit" ) );
+			$debuginfourl = shell_exec ( "cat " . escapeshellarg ( stream_get_meta_data ( $tmp ) ['uri'] ) . " | pastebinit" );
 			fclose ( $tmp );
 			throw new \RuntimeException ( 'failed to login to facebook! apparently... cannot find the logout url!  debuginfo url: ' . $debuginfourl );
 		}
