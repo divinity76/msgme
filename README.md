@@ -23,6 +23,9 @@ hanshenrik@WebDevXubuntu:/$
 ```
 and indeed, my phone, synced to facebook messenger, pings me with "you got a new message!" :)
 
+protip, if you want to be notified when an already started process finishes (like dd), do 
+`while pgrep -x dd ; do sleep 1; done; msgme dd complete`
+
 
 # example installation
 ```bash
