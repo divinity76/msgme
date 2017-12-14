@@ -28,6 +28,10 @@ protip, if you want to be notified when an already started process finishes (lik
 `while pgrep -x dd ; do sleep 1; done; msgme dd complete`
 
 
+# prerequisites
+php-cli >=7 with libxml and libcurl support (in debian & co terms, that means `sudo apt install php7.1-cli php-xml php-curl`)
+- also, when something goes wrong, you may get better error messages if your php is not compiled with `--disable-tokenizer`
+
 # example installation
 ```bash
 sudo rm -fv /usr/bin/msgme_standalone.php /usr/bin/msgme
