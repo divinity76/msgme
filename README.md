@@ -29,7 +29,7 @@ protip, if you want to be notified when an already started process finishes (lik
 
 
 # prerequisites
-php-cli >=7 with libxml and libcurl support (in debian & co terms, that means `sudo apt install php7.1-cli php-xml php-curl`)
+php-cli >=7 with libxml and libcurl support (in debian & co terms, that means `sudo apt install php-cli php-xml php-curl`)
 - also, when something goes wrong, you may get better error messages if your php is not compiled with `--disable-tokenizer`
 
 # example installation
