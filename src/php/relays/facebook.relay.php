@@ -1,9 +1,13 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace MsgMe\Relays\Facebook;
 
 use MsgMe\tools as tools;
-require_once (__DIR__ . '/../hhb_.inc.php');
+use function var_dump as d;
+
+require_once(__DIR__ . '/../hhb_.inc.php');
 
 class FacebookRelay implements \MsgMe\MessageRelay
 {
@@ -28,7 +32,7 @@ class FacebookRelay implements \MsgMe\MessageRelay
         [Facebook]
         email=(facebook login email)
         password=(facebook login password)
-        recipientID=user ID number to recieve the message (you can find the ID number on http://findmyfbid.com/ or https://lookup-id.com/ or google it. worst case scenario, you can find it by looking for "uid" in facebook's html...)
+        recipientID=user ID number to recieve the message (you can find the ID number on http://findmyfbid.com/ or https://lookup-id.com/ or google it. worst case scenario, you can find it by looking for "fbid" in facebook's html...)
         
         
         HELP;
@@ -40,7 +44,9 @@ class FacebookRelay implements \MsgMe\MessageRelay
         $hc = &$this->hc;
         $hc->setopt(CURLOPT_HTTPGET, true);
         $hc->exec('https://m.facebook.com/messages/compose/?ids=' . \rawurlencode((string) $this->recipientID));
-        $domd = @\DOMDocument::loadHTML($hc->getResponseBody());
+        //\hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
+        $domd = new \DOMDocument();
+        @$domd->loadHTML($hc->getResponseBody());
         $form = tools\getDOMDocumentFormInputs($domd, true)['composer_form'];
         $postfields = (function () use (&$form): array {
             $ret = array();
@@ -57,13 +63,15 @@ class FacebookRelay implements \MsgMe\MessageRelay
         $posturl = $urlinfo['scheme'] . '://' . $urlinfo['host'] . $domd->getElementById("composer_form")->getAttribute("action");
         unset($urlinfo);
         // hhb_var_dump ( $postfields, $posturl );
+        //\hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut (), $posturl, $postfields ) & die ();
         $hc->setopt_array(array(
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => http_build_query($postfields)
         ));
+        //$posturl = "http://127.0.0.1:9999/{$posturl}";
         $hc->exec($posturl);
         // TODO: parse the response to make sure it isn't an error?
-        // hhb_var_dump ( $postfields, $posturl, $hc->getStdErr (), $hc->getResponseBody () );
+        //hhb_var_dump ( $postfields, $posturl, $hc->getStdErr (), $hc->getResponseBody () ) & die ();
 
         return true;
     }
@@ -107,27 +115,39 @@ class FacebookRelay implements \MsgMe\MessageRelay
             )
         ));
         $hc->exec('https://m.facebook.com/');
-        // \hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
-        $domd = @\DOMDocument::loadHTML($hc->getResponseBody());
-
-        $namespaces = array();
-        foreach (\get_declared_classes() as $name) {
-            if (\preg_match_all("@[^\\\]+(?=\\\)@iU", $name, $matches)) {
-                $matches = $matches[0];
-                $parent = &$namespaces;
-                while (\count($matches)) {
-                    $match = \array_shift($matches);
-                    if (! isset($parent[$match]) && \count($matches))
-                        $parent[$match] = array();
-                    $parent = &$parent[$match];
-                }
+        //\hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
+        $domd = tools\loadHTML($hc->getResponseBody());
+        $xp = new \DOMXPath($domd);
+        $is_accept_cookies_page = $xp->query("//form[contains(@action,'/cookie/consent/')]");
+        if ($is_accept_cookies_page->length > 0) {
+            // have to accept use of cookies before we can proceed...
+            $is_accept_cookies_page = $is_accept_cookies_page->item(0);
+            $url = 'https://m.facebook.com' . $is_accept_cookies_page->getAttribute("action");
+            $forms = tools\getDOMDocumentFormInputs($domd, true, false);
+            if (false) {
+                $forms = array(
+                    'u_0_0_kZ' => array(
+                        'jazoest' => '2917',
+                        'lsd' => 'AVrv3Q3gmFE',
+                        'accept_only_essential' => '1',
+                    )
+                );
             }
+            $hc->setopt_array(array(
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => http_build_query($forms[key($forms)]),
+                CURLOPT_HTTPHEADER => array(
+                    'accept-language:en-US,en;q=0.8'
+                )
+            ));
+            $hc->exec($url);
+            $domd = tools\loadHTML($hc->getResponseBody());
+            $xp = new \DOMXPath($domd);
+            //\hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
         }
 
-        // print_r ( $namespaces );
-        // die ( "DIEDS" );
-
-        $form = (tools\getDOMDocumentFormInputs($domd, true))['login_form'];
+        $form = (tools\getDOMDocumentFormInputs($domd, true));
+        $form = $form['login_form'];
         $url = $domd->getElementsByTagName("form")
             ->item(0)
             ->getAttribute("action");
@@ -155,9 +175,9 @@ class FacebookRelay implements \MsgMe\MessageRelay
         ));
         // \hhb_var_dump ($postfields ) & die ();
         $hc->exec($url);
-        // \hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
+        //\hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
 
-        $domd = @\DOMDocument::loadHTML($hc->getResponseBody());
+        $domd = tools\loadHTML($hc->getResponseBody());
         $xp = new \DOMXPath($domd);
         $InstallFacebookAppRequest = $xp->query("//a[contains(@href,'/login/save-device/cancel/')]");
         if ($InstallFacebookAppRequest->length > 0) {
@@ -165,20 +185,31 @@ class FacebookRelay implements \MsgMe\MessageRelay
             // and won't let you proceed further until you say yes or no. so we say no.
             $url = 'https://m.facebook.com' . $InstallFacebookAppRequest->item(0)->getAttribute("href");
             $hc->exec($url);
-            $domd = @\DOMDocument::loadHTML($hc->getResponseBody());
+            $domd = tools\loadHTML($hc->getResponseBody());
             $xp = new \DOMXPath($domd);
         }
         unset($InstallFacebookAppRequest, $url);
+        $fingerprint_login_request = $xp->query("//a[contains(@href,'/login/save-device/cancel/')]");
+        if ($fingerprint_login_request->length > 0) {
+            // facebook is asking "ey wanna use fingerprint login instead of email+password?"
+            // and won't let you proceed further until you say yes or no. so we say no.
+            $url = 'https://m.facebook.com' . $fingerprint_login_request->item(0)->getAttribute("href");
+            $hc->setopt_array(array(CURLOPT_HTTPGET => 1))->exec($url);
+            $domd = tools\loadHTML($hc->getResponseBody());
+            $xp = new \DOMXPath($domd);
+            //\hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
+        }
+        unset($fingerprint_login_request, $url);
+        // 
         $urlinfo = parse_url($hc->getinfo(CURLINFO_EFFECTIVE_URL));
-        $a = $xp->query('//a[contains(@href,"/logout.php")]');
-        if ($a->length < 1) {
-            $debuginfo = $hc->getStdErr() . tools\prettify_html($hc->getStdOut());
-            echo $debuginfo, "\n";
+        $logoutButton = $domd->getElementById("mbasic_logout_button");
+        if (!$logoutButton) {
+            //\hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
             throw new \RuntimeException("failed to login to facebook! apparently... cannot find the logout url!");
         }
-        $a = $a->item(0);
-        $url = $urlinfo['scheme'] . '://' . $urlinfo['host'] . $a->getAttribute("href");
-        $this->logoutUrl = $url;
+        $logoutUrl = $urlinfo['scheme'] . '://' . $urlinfo['host'] . $logoutButton->getAttribute("href");
+        $this->logoutUrl = $logoutUrl;
+        //\hhb_var_dump ( $hc->getStdErr (), $hc->getStdOut () ) & die ();
         // all initialized, ready to sendMessage();
     }
 
@@ -222,7 +253,7 @@ class FacebookRelay implements \MsgMe\MessageRelay
         if (isset($urldata["user"]) || isset($urldata["pass"])) {
             $u2 .= "@";
         }
-        if (! isset($urldata["host"])) {
+        if (!isset($urldata["host"])) {
             throw new \LogicException("effective url no host!?");
         }
         $u2 .= $urldata["host"];

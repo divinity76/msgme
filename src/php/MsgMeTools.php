@@ -158,6 +158,17 @@ function loadHTML_noemptywhitespace(string $html, int $extra_flags = 0, int $exc
     $removeAnnoyingWhitespaceTextNodes($domd);
     return $domd;
 }
+function loadHTML(string $html, int $extra_flags = 0, int $exclude_flags = 0): \DOMDocument
+{
+    $flags = LIBXML_HTML_NODEFDTD | LIBXML_NONET;
+    $flags = ($flags | $extra_flags) & ~ $exclude_flags;
+
+    $domd = new \DOMDocument();
+    //$domd->preserveWhiteSpace = false;
+    @$domd->loadHTML('<?xml encoding="UTF-8">' . $html, $flags);
+    return $domd;
+}
+
 
 function prettify_html(string $html): string
 {
