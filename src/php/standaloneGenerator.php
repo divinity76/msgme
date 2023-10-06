@@ -13,7 +13,7 @@ $evalPositionString = '// StandAloneGeneratorEvalPoint431763246';
 $evalPosition = strpos ( $fullsource, $evalPositionString );
 $fullsourcePart1 = substr ( $fullsource, 0, $evalPosition );
 $fullsourcePart2 = substr ( $fullsource, $evalPosition );
-$fullsource = $fullsourcePart1 .= "\ndefine('IS_STANDALONE',true,true);\n" . $fullsourcePart2;
+$fullsource = $fullsourcePart1 .= "\ndefine('IS_STANDALONE',true);\n" . $fullsourcePart2;
 if ($evalPosition === false) {
 	throw new Exception ( 'cannot find ' . $evalPositionString );
 }
