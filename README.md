@@ -35,7 +35,7 @@ php-cli >=7 with libxml and libcurl support (in debian & co terms, that means `s
 # example installation
 ```bash
 sudo rm -fv /usr/bin/msgme_standalone.php /usr/bin/msgme
-sudo wget -O /usr/bin/msgme_standalone.php https://github.com/divinity76/msgme/releases/download/0.5.0/msgme_standalone.php
+sudo wget -O /usr/bin/msgme_standalone.php https://github.com/divinity76/msgme/releases/download/v0.5.1/msgme_standalone.php
 sudo chmod 0555 /usr/bin/msgme_standalone.php
 sudo ln -s /usr/bin/msgme_standalone.php /usr/bin/msgme
 ```
