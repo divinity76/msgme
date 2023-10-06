@@ -374,7 +374,9 @@ function hhb_init()
     // ini_set("error_log",__DIR__.DIRECTORY_SEPARATOR.'error_log.php.txt');
     assert_options(ASSERT_ACTIVE, 1);
     assert_options(ASSERT_WARNING, 0);
-    assert_options(ASSERT_QUIET_EVAL, 1);
+    if(PHP_MAJOR_VERSION < 8){
+        assert_options(ASSERT_QUIET_EVAL, 1);
+    }
     assert_options(ASSERT_CALLBACK, 'hhb_assert_handler');
 }
 

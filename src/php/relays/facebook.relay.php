@@ -6,6 +6,7 @@ namespace MsgMe\Relays\Facebook;
 
 use MsgMe\tools as tools;
 use function var_dump as d;
+use function MsgMe\tools\dd as dd;
 
 require_once(__DIR__ . '/../hhb_.inc.php');
 
@@ -217,6 +218,11 @@ class FacebookRelay implements \MsgMe\MessageRelay
     {
         $this->hc->exec($this->logoutUrl);
         unset($this->hc); // im trying to force it to hhb_curl::__destruct, this would be the appropriate time.
+    }
+
+    public function _getHc(): \hhb_curl
+    {
+        return $this->hc;
     }
 
     private function fixRelativeUrl(string $url, string $effective_url): string

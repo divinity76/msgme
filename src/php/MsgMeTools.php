@@ -1,5 +1,7 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace MsgMe\tools;
 
 function isItSafeToOnlyUseFirstFormInputMatch(\DOMDocument $domd, \DOMNode $form = NULL): bool
@@ -18,7 +20,8 @@ function isItSafeToOnlyUseFirstFormInputMatch(\DOMDocument $domd, \DOMNode $form
     return true;
 }
 
-function return_var_dump(/*...*/){
+function return_var_dump(/*...*/)
+{
     $args = func_get_args();
     ob_start();
     call_user_func_array('var_dump', $args);
@@ -28,7 +31,7 @@ function return_var_dump(/*...*/){
 function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches = false, bool $getElements = true): array
 {
     // :DOMNodeList?
-    if (! $getOnlyFirstMatches && ! $getElements) {
+    if (!$getOnlyFirstMatches && !$getElements) {
         throw new \InvalidArgumentException('!$getElements is currently only implemented for $getOnlyFirstMatches (cus im lazy and nobody has written the code yet)');
     }
     $forms = $domd->getElementsByTagName('form');
@@ -71,11 +74,11 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
                     // echo "inputs with no name are ignored when submitted by mainstream browsers (presumably because of specs)... follow suite?", PHP_EOL;
                     continue;
                 }
-                if (! $isDescendantOf($input, $form) && $form->getAttribute("id") !== '' && $input->getAttribute("form") !== $form->getAttribute("id")) {
+                if (!$isDescendantOf($input, $form) && $form->getAttribute("id") !== '' && $input->getAttribute("form") !== $form->getAttribute("id")) {
                     // echo "this input does not belong to this form.", PHP_EOL;
                     continue;
                 }
-                if (! array_key_exists($name, $ret)) {
+                if (!array_key_exists($name, $ret)) {
                     $ret[$name] = array(
                         $input
                     );
@@ -94,12 +97,12 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
                 $hasName = false;
             }
         }
-        if (! $hasName) {
+        if (!$hasName) {
             $parsedForms[] = array(
                 $inputs
             );
         } else {
-            if (! array_key_exists($name, $parsedForms)) {
+            if (!array_key_exists($name, $parsedForms)) {
                 $parsedForms[$name] = array(
                     $inputs
                 );
@@ -136,7 +139,7 @@ function getDOMDocumentFormInputs(\DOMDocument $domd, bool $getOnlyFirstMatches 
 function loadHTML_noemptywhitespace(string $html, int $extra_flags = 0, int $exclude_flags = 0): \DOMDocument
 {
     $flags = LIBXML_HTML_NODEFDTD | LIBXML_NOBLANKS | LIBXML_NONET;
-    $flags = ($flags | $extra_flags) & ~ $exclude_flags;
+    $flags = ($flags | $extra_flags) & ~$exclude_flags;
 
     $domd = new \DOMDocument();
     $domd->preserveWhiteSpace = false;
@@ -145,11 +148,11 @@ function loadHTML_noemptywhitespace(string $html, int $extra_flags = 0, int $exc
         if ($node->hasChildNodes()) {
             // Warning: it's important to do it backwards; if you do it forwards, the index for DOMNodeList might become invalidated;
             // that's why i don't use foreach() - don't change it (unless you know what you're doing, ofc)
-            for ($i = $node->childNodes->length - 1; $i >= 0; -- $i) {
+            for ($i = $node->childNodes->length - 1; $i >= 0; --$i) {
                 $removeAnnoyingWhitespaceTextNodes($node->childNodes->item($i));
             }
         }
-        if ($node->nodeType === XML_TEXT_NODE && ! $node->hasChildNodes() && ! $node->hasAttributes() && ! strlen(trim($node->textContent))) {
+        if ($node->nodeType === XML_TEXT_NODE && !$node->hasChildNodes() && !$node->hasAttributes() && !strlen(trim($node->textContent))) {
             // echo "Removing annoying POS";
             // var_dump($node);
             $node->parentNode->removeChild($node);
@@ -161,7 +164,7 @@ function loadHTML_noemptywhitespace(string $html, int $extra_flags = 0, int $exc
 function loadHTML(string $html, int $extra_flags = 0, int $exclude_flags = 0): \DOMDocument
 {
     $flags = LIBXML_HTML_NODEFDTD | LIBXML_NONET;
-    $flags = ($flags | $extra_flags) & ~ $exclude_flags;
+    $flags = ($flags | $extra_flags) & ~$exclude_flags;
 
     $domd = new \DOMDocument();
     //$domd->preserveWhiteSpace = false;
@@ -176,4 +179,13 @@ function prettify_html(string $html): string
     $domd->preserveWhiteSpace = false;
     $domd->formatOutput = true;
     return $domd->saveHTML();
+}
+
+function dd(...$args): void /*: never */
+{
+    $trace = debug_backtrace(0, 2)[1];
+    echo "<pre>\ndd() called from ", $trace['file'], ":", $trace['line'], "\n";
+    var_dump(...$args);
+    echo "</pre>\n";
+    die(1);
 }
